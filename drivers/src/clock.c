@@ -1,3 +1,4 @@
+#include <stdint.h>
 #include "clock.h"
 
 void AHB1_CLK_EN(AHB1_periph_t periph)

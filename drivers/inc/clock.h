@@ -1,7 +1,4 @@
 #define RCC_BASE_ADDR 0x40023800
-#define uint32_t unsigned int
-#define uint16_t unsigned short
-#define uint8_t  unsigned char
 typedef enum
 {
     AHB1_GPIOA, AHB1_GPIOB, AHB1_GPIOC, AHB1_GPIOD, AHB1_GPIOE,

@@ -1,5 +1,31 @@
+#include <stdint.h>
 #include "led.h"
 #include "clock.h"
+
+LED_state_t stt[4] = { LED_OFF };
+void LED_toggle(LED_color_t color)
+{
+	if (color == GREEN_LED) 
+	{
+		LED_Ctrl(color, stt[0]);
+		stt[0] = (stt[0] == LED_ON) ? LED_OFF : LED_ON;
+	}
+	else if (color == ORANGE_LED) 
+	{
+		LED_Ctrl(color, stt[1]);
+		stt[1] = (stt[1] == LED_ON) ? LED_OFF : LED_ON;
+	}
+	else if (color == RED_LED) 
+	{
+		LED_Ctrl(color, stt[2]);
+		stt[2] = (stt[2] == LED_ON) ? LED_OFF : LED_ON;
+	}
+	else if (color == BLUE_LED) 
+	{
+		LED_Ctrl(color, stt[3]);
+		stt[3] = (stt[3] == LED_ON) ? LED_OFF : LED_ON;
+	}
+}
 
 void LED_Ctrl(LED_color_t color, LED_state_t state)
 {

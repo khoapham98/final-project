@@ -1,3 +1,4 @@
+#include <stdint.h>
 #include "clock.h"
 #include "uart.h"
 

@@ -1,40 +1,26 @@
-.PHONY: all clean flash
+FREERTOS_DIR=FreeRTOS
+HEADER=-u _printf_float -specs=nano.specs -specs=nosys.specs -mfpu=fpv4-sp-d16 -mthumb -mfloat-abi=hard -mcpu=cortex-m4 -std=gnu11 -Idrivers/inc/ -I$(FREERTOS_DIR)/include/ -I. -I$(FREERTOS_DIR)/portable/GCC/ARM_CM4F/ -I$(FREERTOS_DIR)/config/
 
-SRC_DIR := .
-DRIVERS_SRC := drivers/src
-INCLUDES := -Idrivers/inc
-OBJ_DIR := build/obj
-BIN_DIR := build/bin
+all:
+# build freeRTOS kernel
+	arm-none-eabi-gcc -c $(FREERTOS_DIR)/src/list.c $(HEADER) -o build/obj/list.o
+	arm-none-eabi-gcc -c $(FREERTOS_DIR)/src/queue.c $(HEADER) -o build/obj/queue.o
+	arm-none-eabi-gcc -c $(FREERTOS_DIR)/src/tasks.c $(HEADER) -o build/obj/tasks.o
+	arm-none-eabi-gcc -c $(FREERTOS_DIR)/portable/GCC/ARM_CM4F/port.c $(HEADER) -o build/obj/port.o
+	arm-none-eabi-gcc -c $(FREERTOS_DIR)/portable/MemMang/heap_4.c $(HEADER) -o build/obj/heap_4.o
 
-C_SOURCES := $(wildcard $(SRC_DIR)/*.c) $(wildcard $(DRIVERS_SRC)/*.c)
-ASM_SOURCE := startup_stm32f411vetx.s
-
-C_OBJECTS := $(patsubst %.c,$(OBJ_DIR)/%.o,$(notdir $(C_SOURCES)))
-ASM_OBJECT := $(OBJ_DIR)/startup.o
-OBJECTS := $(C_OBJECTS) $(ASM_OBJECT)
-
-ELF := $(BIN_DIR)/firmware.elf
-BIN := $(BIN_DIR)/firmware.bin
-
-all: $(ELF) $(BIN)
-
-$(OBJ_DIR)/%.o: %.c
-	@mkdir -p $(OBJ_DIR)
-	arm-none-eabi-gcc -mcpu=cortex-m4 -std=gnu11 $(INCLUDES) -c $< -o $@
-
-$(OBJ_DIR)/startup.o: $(ASM_SOURCE)
-	@mkdir -p $(OBJ_DIR)
-	arm-none-eabi-gcc -mcpu=cortex-m4 -x assembler-with-cpp -c $< -o $@
-
-$(ELF): $(OBJECTS)
-	@mkdir -p $(BIN_DIR)
-	arm-none-eabi-gcc -mcpu=cortex-m4 -TSTM32F411VETX_FLASH.ld -Wl,-Map=$(BIN_DIR)/output.map -Wl,--gc-sections -static $^ -o $@
-
-$(BIN): $(ELF)
-	arm-none-eabi-objcopy -O binary $< $@
+# build application
+	arm-none-eabi-gcc -c main.c $(HEADER) -o build/obj/main.o
+	arm-none-eabi-gcc -c drivers/src/uart.c $(HEADER) -o build/obj/uart.o
+	arm-none-eabi-gcc -c drivers/src/led.c $(HEADER) -o build/obj/led.o
+	arm-none-eabi-gcc -c drivers/src/clock.c $(HEADER) -o build/obj/clock.o
+	arm-none-eabi-gcc -c -x assembler-with-cpp startup_stm32f411vetx.s -mcpu=cortex-m4 -std=gnu11 -o build/obj/startup.o
+	arm-none-eabi-gcc build/obj/*.o $(HEADER) -T"STM32F411VETX_FLASH.ld" -Wl,-Map="build/bin/output.map" -Wl,--gc-sections -static -o build/bin/firmware.elf
+	arm-none-eabi-objcopy -O ihex build/bin/firmware.elf build/bin/firmware.hex
+	arm-none-eabi-objcopy -O binary build/bin/firmware.elf build/bin/firmware.bin
 
 clean:
-	rm -f $(OBJ_DIR)/*.o $(ELF) $(BIN)
+	rm build/obj/*
 
-flash: $(BIN)
-	cmd.exe /c "STM32_Programmer_CLI -c port=SWD -e all -d $(BIN) 0x08000000 -rst"
+flash:
+	cmd.exe /c "STM32_Programmer_CLI -c port=SWD -e all -d build/bin/firmware.bin 0x08000000 -rst"

@@ -37,18 +37,18 @@ Discarded input sections
  .debug_str     0x0000000000000000       0x95 /usr/lib/gcc/arm-none-eabi/10.3.1/../../../arm-none-eabi/lib/thumb/v7e-m/nofp/crt0.o
  .ARM.attributes
                 0x0000000000000000       0x1c /usr/lib/gcc/arm-none-eabi/10.3.1/../../../arm-none-eabi/lib/thumb/v7e-m/nofp/crt0.o
- .data          0x0000000000000000        0x0 obj/main.o
- .bss           0x0000000000000000        0x0 obj/main.o
- .data          0x0000000000000000        0x0 obj/led.o
- .bss           0x0000000000000000        0x0 obj/led.o
- .data          0x0000000000000000        0x0 obj/clock.o
- .bss           0x0000000000000000        0x0 obj/clock.o
- .data          0x0000000000000000        0x0 obj/timer.o
- .data          0x0000000000000000        0x0 obj/uart.o
- .bss           0x0000000000000000        0x0 obj/uart.o
- .text          0x0000000000000000       0x14 obj/startup.o
- .data          0x0000000000000000        0x0 obj/startup.o
- .bss           0x0000000000000000        0x0 obj/startup.o
+ .data          0x0000000000000000        0x0 build/obj/main.o
+ .bss           0x0000000000000000        0x0 build/obj/main.o
+ .data          0x0000000000000000        0x0 build/obj/clock.o
+ .bss           0x0000000000000000        0x0 build/obj/clock.o
+ .data          0x0000000000000000        0x0 build/obj/led.o
+ .bss           0x0000000000000000        0x0 build/obj/led.o
+ .data          0x0000000000000000        0x0 build/obj/timer.o
+ .data          0x0000000000000000        0x0 build/obj/uart.o
+ .bss           0x0000000000000000        0x0 build/obj/uart.o
+ .text          0x0000000000000000       0x14 build/obj/startup.o
+ .data          0x0000000000000000        0x0 build/obj/startup.o
+ .bss           0x0000000000000000        0x0 build/obj/startup.o
  .data          0x0000000000000000        0x0 /usr/lib/gcc/arm-none-eabi/10.3.1/../../../arm-none-eabi/lib/thumb/v7e-m/nofp/libc.a(lib_a-atexit.o)
  .bss           0x0000000000000000        0x0 /usr/lib/gcc/arm-none-eabi/10.3.1/../../../arm-none-eabi/lib/thumb/v7e-m/nofp/libc.a(lib_a-atexit.o)
  .text          0x0000000000000000       0x20 /usr/lib/gcc/arm-none-eabi/10.3.1/../../../arm-none-eabi/lib/thumb/v7e-m/nofp/libc.a(lib_a-exit.o)
@@ -111,12 +111,12 @@ Linker script and memory map
 LOAD /usr/lib/gcc/arm-none-eabi/10.3.1/thumb/v7e-m/nofp/crti.o
 LOAD /usr/lib/gcc/arm-none-eabi/10.3.1/thumb/v7e-m/nofp/crtbegin.o
 LOAD /usr/lib/gcc/arm-none-eabi/10.3.1/../../../arm-none-eabi/lib/thumb/v7e-m/nofp/crt0.o
-LOAD obj/main.o
-LOAD obj/led.o
-LOAD obj/clock.o
-LOAD obj/timer.o
-LOAD obj/uart.o
-LOAD obj/startup.o
+LOAD build/obj/main.o
+LOAD build/obj/clock.o
+LOAD build/obj/led.o
+LOAD build/obj/timer.o
+LOAD build/obj/uart.o
+LOAD build/obj/startup.o
 START GROUP
 LOAD /usr/lib/gcc/arm-none-eabi/10.3.1/thumb/v7e-m/nofp/libgcc.a
 LOAD /usr/lib/gcc/arm-none-eabi/10.3.1/../../../arm-none-eabi/lib/thumb/v7e-m/nofp/libc.a
@@ -130,7 +130,7 @@ LOAD /usr/lib/gcc/arm-none-eabi/10.3.1/thumb/v7e-m/nofp/crtn.o
 .isr_vector     0x0000000008000000      0x198
                 0x0000000008000000                . = ALIGN (0x4)
  *(.isr_vector)
- .isr_vector    0x0000000008000000      0x198 obj/startup.o
+ .isr_vector    0x0000000008000000      0x198 build/obj/startup.o
                 0x0000000008000000                g_pfnVectors
                 0x0000000008000198                . = ALIGN (0x4)
 
@@ -138,22 +138,22 @@ LOAD /usr/lib/gcc/arm-none-eabi/10.3.1/thumb/v7e-m/nofp/crtn.o
                 0x0000000008000198                . = ALIGN (0x4)
  *(.text)
  .text          0x0000000008000198       0x88 /usr/lib/gcc/arm-none-eabi/10.3.1/thumb/v7e-m/nofp/crtbegin.o
- .text          0x0000000008000220       0x50 obj/main.o
+ .text          0x0000000008000220       0x50 build/obj/main.o
                 0x0000000008000220                main
                 0x0000000008000264                SystemInit
- .text          0x0000000008000270       0x88 obj/led.o
-                0x0000000008000270                LED_Ctrl
-                0x00000000080002c4                LED_Init
- .text          0x00000000080002f8       0xc0 obj/clock.o
-                0x00000000080002f8                AHB1_CLK_EN
-                0x0000000008000328                AHB2_CLK_EN
-                0x0000000008000358                APB1_CLK_EN
-                0x0000000008000388                APB2_CLK_EN
- .text          0x00000000080003b8       0xd8 obj/timer.o
+ .text          0x0000000008000270       0xc0 build/obj/clock.o
+                0x0000000008000270                AHB1_CLK_EN
+                0x00000000080002a0                AHB2_CLK_EN
+                0x00000000080002d0                APB1_CLK_EN
+                0x0000000008000300                APB2_CLK_EN
+ .text          0x0000000008000330       0x88 build/obj/led.o
+                0x0000000008000330                LED_Ctrl
+                0x0000000008000384                LED_Init
+ .text          0x00000000080003b8       0xd8 build/obj/timer.o
                 0x00000000080003b8                delay_sec
                 0x00000000080003e4                TIM1_UP_TIM10_IRQHandler
                 0x000000000800041c                TIM_Init
- .text          0x0000000008000490      0x148 obj/uart.o
+ .text          0x0000000008000490      0x148 build/obj/uart.o
                 0x00000000080004bc                UART_send_string
                 0x0000000008000534                UART_Init
  .text          0x00000000080005d8        0xc /usr/lib/gcc/arm-none-eabi/10.3.1/../../../arm-none-eabi/lib/thumb/v7e-m/nofp/libc.a(lib_a-atexit.o)
@@ -166,10 +166,10 @@ LOAD /usr/lib/gcc/arm-none-eabi/10.3.1/thumb/v7e-m/nofp/crtn.o
                 0x0000000008000658                __register_exitproc
  *(.text*)
  .text.Reset_Handler
-                0x00000000080006c0       0x50 obj/startup.o
+                0x00000000080006c0       0x50 build/obj/startup.o
                 0x00000000080006c0                Reset_Handler
  .text.Default_Handler
-                0x0000000008000710        0x2 obj/startup.o
+                0x0000000008000710        0x2 build/obj/startup.o
                 0x0000000008000710                RTC_Alarm_IRQHandler
                 0x0000000008000710                EXTI2_IRQHandler
                 0x0000000008000710                DebugMon_Handler
@@ -267,7 +267,7 @@ LOAD /usr/lib/gcc/arm-none-eabi/10.3.1/thumb/v7e-m/nofp/crtn.o
 .rodata         0x0000000008000740       0x28
                 0x0000000008000740                . = ALIGN (0x4)
  *(.rodata)
- .rodata        0x0000000008000740       0x21 obj/main.o
+ .rodata        0x0000000008000740       0x21 build/obj/main.o
  *fill*         0x0000000008000761        0x3 
  .rodata        0x0000000008000764        0x4 /usr/lib/gcc/arm-none-eabi/10.3.1/../../../arm-none-eabi/lib/thumb/v7e-m/nofp/libc.a(lib_a-impure.o)
                 0x0000000008000764                _global_impure_ptr
@@ -345,7 +345,7 @@ LOAD /usr/lib/gcc/arm-none-eabi/10.3.1/thumb/v7e-m/nofp/crtn.o
                 0x0000000020000430                __bss_start__ = _sbss
  *(.bss)
  .bss           0x0000000020000430       0x1c /usr/lib/gcc/arm-none-eabi/10.3.1/thumb/v7e-m/nofp/crtbegin.o
- .bss           0x000000002000044c        0x2 obj/timer.o
+ .bss           0x000000002000044c        0x2 build/obj/timer.o
  *(.bss*)
  *(COMMON)
                 0x0000000020000450                . = ALIGN (0x4)
@@ -377,17 +377,17 @@ LOAD /usr/lib/gcc/arm-none-eabi/10.3.1/thumb/v7e-m/nofp/crtn.o
  .ARM.attributes
                 0x000000000000001e       0x2e /usr/lib/gcc/arm-none-eabi/10.3.1/thumb/v7e-m/nofp/crtbegin.o
  .ARM.attributes
-                0x000000000000004c       0x2e obj/main.o
+                0x000000000000004c       0x2e build/obj/main.o
  .ARM.attributes
-                0x000000000000007a       0x2e obj/led.o
+                0x000000000000007a       0x2e build/obj/clock.o
  .ARM.attributes
-                0x00000000000000a8       0x2e obj/clock.o
+                0x00000000000000a8       0x2e build/obj/led.o
  .ARM.attributes
-                0x00000000000000d6       0x2e obj/timer.o
+                0x00000000000000d6       0x2e build/obj/timer.o
  .ARM.attributes
-                0x0000000000000104       0x2e obj/uart.o
+                0x0000000000000104       0x2e build/obj/uart.o
  .ARM.attributes
-                0x0000000000000132       0x21 obj/startup.o
+                0x0000000000000132       0x21 build/obj/startup.o
  .ARM.attributes
                 0x0000000000000153       0x2e /usr/lib/gcc/arm-none-eabi/10.3.1/../../../arm-none-eabi/lib/thumb/v7e-m/nofp/libc.a(lib_a-atexit.o)
  .ARM.attributes
@@ -404,7 +404,7 @@ LOAD /usr/lib/gcc/arm-none-eabi/10.3.1/thumb/v7e-m/nofp/crtn.o
                 0x0000000000000267       0x2e /usr/lib/gcc/arm-none-eabi/10.3.1/thumb/v7e-m/nofp/crtend.o
  .ARM.attributes
                 0x0000000000000295       0x1e /usr/lib/gcc/arm-none-eabi/10.3.1/thumb/v7e-m/nofp/crtn.o
-OUTPUT(bin/firmware.elf elf32-littlearm)
+OUTPUT(build/bin/firmware.elf elf32-littlearm)
 LOAD linker stubs
 LOAD /usr/lib/gcc/arm-none-eabi/10.3.1/../../../arm-none-eabi/lib/thumb/v7e-m/nofp/libc.a
 LOAD /usr/lib/gcc/arm-none-eabi/10.3.1/../../../arm-none-eabi/lib/thumb/v7e-m/nofp/libm.a
@@ -413,11 +413,11 @@ LOAD /usr/lib/gcc/arm-none-eabi/10.3.1/thumb/v7e-m/nofp/libgcc.a
 .comment        0x0000000000000000       0x33
  .comment       0x0000000000000000       0x33 /usr/lib/gcc/arm-none-eabi/10.3.1/thumb/v7e-m/nofp/crtbegin.o
                                          0x34 (size before relaxing)
- .comment       0x0000000000000033       0x34 obj/main.o
- .comment       0x0000000000000033       0x34 obj/led.o
- .comment       0x0000000000000033       0x34 obj/clock.o
- .comment       0x0000000000000033       0x34 obj/timer.o
- .comment       0x0000000000000033       0x34 obj/uart.o
+ .comment       0x0000000000000033       0x34 build/obj/main.o
+ .comment       0x0000000000000033       0x34 build/obj/clock.o
+ .comment       0x0000000000000033       0x34 build/obj/led.o
+ .comment       0x0000000000000033       0x34 build/obj/timer.o
+ .comment       0x0000000000000033       0x34 build/obj/uart.o
  .comment       0x0000000000000033       0x34 /usr/lib/gcc/arm-none-eabi/10.3.1/../../../arm-none-eabi/lib/thumb/v7e-m/nofp/libc.a(lib_a-atexit.o)
  .comment       0x0000000000000033       0x34 /usr/lib/gcc/arm-none-eabi/10.3.1/../../../arm-none-eabi/lib/thumb/v7e-m/nofp/libc.a(lib_a-fini.o)
  .comment       0x0000000000000033       0x34 /usr/lib/gcc/arm-none-eabi/10.3.1/../../../arm-none-eabi/lib/thumb/v7e-m/nofp/libc.a(lib_a-impure.o)

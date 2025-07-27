@@ -1,30 +1,40 @@
-.PHONY: clean flash
+.PHONY: all clean flash
 
-all: obj/main.o obj/led.o obj/clock.o obj/timer.o obj/uart.o obj/startup.o bin/firmware.elf  
+SRC_DIR := .
+DRIVERS_SRC := drivers/src
+INCLUDES := -Idrivers/inc
+OBJ_DIR := build/obj
+BIN_DIR := build/bin
 
-obj/main.o: src/main.c
-	arm-none-eabi-gcc -mcpu=cortex-m4 -std=gnu11 -Iinc -c src/main.c -o obj/main.o
+C_SOURCES := $(wildcard $(SRC_DIR)/*.c) $(wildcard $(DRIVERS_SRC)/*.c)
+ASM_SOURCE := startup_stm32f411vetx.s
 
-obj/led.o: src/led.c
-	arm-none-eabi-gcc -mcpu=cortex-m4 -std=gnu11 -Iinc -c src/led.c -o obj/led.o
+C_OBJECTS := $(patsubst %.c,$(OBJ_DIR)/%.o,$(notdir $(C_SOURCES)))
+ASM_OBJECT := $(OBJ_DIR)/startup.o
+OBJECTS := $(C_OBJECTS) $(ASM_OBJECT)
 
-obj/clock.o: src/clock.c
-	arm-none-eabi-gcc -mcpu=cortex-m4 -std=gnu11 -Iinc -c src/clock.c -o obj/clock.o
+ELF := $(BIN_DIR)/firmware.elf
+BIN := $(BIN_DIR)/firmware.bin
 
-obj/timer.o: src/timer.c
-	arm-none-eabi-gcc -mcpu=cortex-m4 -std=gnu11 -Iinc -c src/timer.c -o obj/timer.o
+all: $(ELF) $(BIN)
 
-obj/uart.o: src/uart.c
-	arm-none-eabi-gcc -mcpu=cortex-m4 -std=gnu11 -Iinc -c src/uart.c -o obj/uart.o
+$(OBJ_DIR)/%.o: %.c
+	@mkdir -p $(OBJ_DIR)
+	arm-none-eabi-gcc -mcpu=cortex-m4 -std=gnu11 $(INCLUDES) -c $< -o $@
 
-obj/startup.o: startup_stm32f411vetx.s 
-	arm-none-eabi-gcc -mcpu=cortex-m4 -x assembler-with-cpp -c startup_stm32f411vetx.s -o obj/startup.o
+$(OBJ_DIR)/startup.o: $(ASM_SOURCE)
+	@mkdir -p $(OBJ_DIR)
+	arm-none-eabi-gcc -mcpu=cortex-m4 -x assembler-with-cpp -c $< -o $@
 
-bin/firmware.elf: obj/main.o obj/led.o obj/clock.o obj/timer.o obj/startup.o  
-	arm-none-eabi-gcc -mcpu=cortex-m4 -T"STM32F411VETX_FLASH.ld" -Wl,-Map="map/output.map" -Wl,--gc-sections -static obj/main.o obj/led.o obj/clock.o obj/timer.o obj/uart.o obj/startup.o -o bin/firmware.elf
+$(ELF): $(OBJECTS)
+	@mkdir -p $(BIN_DIR)
+	arm-none-eabi-gcc -mcpu=cortex-m4 -TSTM32F411VETX_FLASH.ld -Wl,-Map=$(BIN_DIR)/output.map -Wl,--gc-sections -static $^ -o $@
 
-clean: 
-	rm -f obj/*.o
+$(BIN): $(ELF)
+	arm-none-eabi-objcopy -O binary $< $@
 
-flash: bin/firmware.elf 
-	STM32_Programmer_CLI -c port=SWD -e 0 -d bin/firmware.elf -rst
+clean:
+	rm -f $(OBJ_DIR)/*.o $(ELF) $(BIN)
+
+flash: $(BIN)
+	cmd.exe /c "STM32_Programmer_CLI -c port=SWD -e all -d $(BIN) 0x08000000 -rst"

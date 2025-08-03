@@ -1,25 +1,73 @@
 #include <stdint.h>
 #include "clock.h"
 #include "uart.h"
+#include "dma.h"
+#include <stdarg.h>
+#include <led.h>
+#include <string.h>
+#include <stdio.h>
 
-static void UART_transmit(uint8_t data);
-static uint32_t getlen(char* str)
+uint8_t LED = 4, LED_stt = LED_OFF;
+extern char rx_buf[];
+const char* color_name[] = {"green", "orange", "red", "blue",
+							"Green", "Orange", "Red", "Blue", 
+							"GREEN", "ORANGE", "RED", "BLUE"};
+const char* stt_name[] = {"off", "on", 
+						"Off", "On",
+						"OFF", "ON"}; 
+
+static void data_process()
 {
-	uint32_t cnt = 0; 
-	while (str[cnt] != 0)
+	int clen = sizeof(color_name) / sizeof(color_name[0]);
+	for (int i = 0; i < clen; i++)
 	{
-		cnt++;
+		if (strstr(rx_buf, color_name[i])) 
+		{
+			if (i < 4) { LED = i; }
+			else if (i < 8) { LED = i - 4; }
+			else { LED = i - 8; }
+			break;
+		}
 	}
-	return cnt; 
+
+	int slen = sizeof(stt_name) / sizeof(stt_name[0]);
+	for (int i = 0; i < slen; i++)
+	{
+		if (strstr(rx_buf, stt_name[i])) 
+		{
+			if (i < 2) { LED_stt = i; }
+			else if (i < 4) { LED_stt = i - 2; }
+			else { LED_stt = i - 4; }
+			break;
+		}
+	}
 }
 
-void UART_send_string(char* str)
+void USART1_IRQHandler()
 {
-	uint32_t strlen = getlen(str);
-	for (int i = 0; i < strlen; i++)
-	{
-		UART_transmit(str[i]);
-	}
+	UART_send_string("Data received!\n");
+	uint32_t* USART_SR = (uint32_t*) (USART1_BASE_ADDR + 0x00);
+	uint32_t* USART_DR = (uint32_t*) (USART1_BASE_ADDR + 0x04);
+	uint32_t* DMA_S2CR = (uint32_t*) (DMA2_BASE_ADDR + 0x10 + 0x18 * 2); 
+	uint32_t* DMA_S2M0AR = (uint32_t*) (DMA2_BASE_ADDR + 0x1C + 0x18 * 2);
+	uint32_t* DMA_S2NDTR = (uint32_t*) (DMA2_BASE_ADDR + 0x14 + 0x18 * 2);
+	uint32_t* DMA_LIFCR  = (uint32_t*) (DMA2_BASE_ADDR + 0x08);
+	uint32_t tmp;
+	tmp = *USART_SR;
+	tmp = *USART_DR;
+	(void)tmp; 
+	/* disable DMA */
+	*DMA_S2CR &= ~(1 << 0); 
+	/* set number of data */
+	*DMA_S2NDTR = 32;
+	/* set dest addr */
+	*DMA_S2M0AR = (uint32_t) rx_buf;
+	/* data process */
+	data_process();
+	/* clear interrupt flag */ 
+	*DMA_LIFCR |= 1 << 21; 
+	/* enable DMA */ 
+	*DMA_S2CR |= 1 << 0; 
 }
 
 static void UART_transmit(uint8_t data)
@@ -28,6 +76,20 @@ static void UART_transmit(uint8_t data)
 	uint8_t*  USART_DR = (uint8_t*)  (USART1_BASE_ADDR + 0x04);
 	*USART_DR = data; 
 	while (((*USART_SR >> 7) & 1) == 0);
+}
+
+void UART_send_string(char* str, ...)
+{
+	va_list args; 
+	va_start(args, str);
+	char buf[64] = {0}; 
+	vsprintf(buf, str, args); 
+	uint32_t slen = strlen(buf);
+	for (int i = 0; i < slen; i++)
+	{
+		UART_transmit(buf[i]);
+	}
+	va_end(args);
 }
 
 void UART_Init()
@@ -44,7 +106,9 @@ void UART_Init()
 
 	APB2_CLK_EN(APB2_USART1);
 	uint32_t* USART_CR1 = (uint32_t*) (USART1_BASE_ADDR + 0x0C);
-	uint32_t* USART_BRR = (uint32_t*) (USART1_BASE_ADDR + 0x08);  
+	uint32_t* USART_BRR = (uint32_t*) (USART1_BASE_ADDR + 0x08);  	
+	uint32_t* USART_CR3 = (uint32_t*) (USART1_BASE_ADDR + 0x14);  	
+	uint32_t* NVIC_ISER1 = (uint32_t*) (0xE000E104);
 	/* word length = 9 data bits */
 	*USART_CR1 |= 1 << 12; 
 	/* enable parity */
@@ -53,6 +117,12 @@ void UART_Init()
 	*USART_CR1 |= (1 << 2) | (1 << 3); 
 	/* baud rate = 9600 bps */
 	*USART_BRR  = (104 << 4) | ( 3 << 0);
+	/* enable DMA receiver */
+	*USART_CR3 |= 1 << 6; 
+	/* enable IDLE interrupt */ 
+	*USART_CR1 |= 1 << 4;  
 	/* enable UART */
 	*USART_CR1 |= 1 << 13;
+	/* interrupt set enable */
+	*NVIC_ISER1 |= 1 << (37 - 32); 
 } 

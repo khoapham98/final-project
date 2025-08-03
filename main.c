@@ -1,33 +1,27 @@
 #include <stdint.h>
 #include "clock.h"
 #include "led.h"
-#include "projdefs.h"
 #include "uart.h"
+#include "dma.h"
 #include "FreeRTOS.h"
 #include "task.h"
 
 TaskHandle_t task1;
-TaskHandle_t task2; 
+extern uint8_t LED;
+extern uint8_t LED_stt;
+extern const char* color_name[];
+extern const char* stt_name[];
 
-void task1_blink_red_led()
+void task1_LED_Ctrl_via_UART()
 {
-	int stt = LED_ON;
-	UART_send_string("Task 1 khoi tao thanh cong\n");
 	while (1) 
 	{
-		LED_toggle(RED_LED);
-		vTaskDelay(1000);
-	}
-}
-
-void task2_blink_blue_led()
-{
-	int stt = LED_ON;
-	UART_send_string("Task 2 khoi tao thanh cong\n");
-	while (1) 
-	{
-		LED_toggle(BLUE_LED);
-		vTaskDelay(3000);
+		if (LED != 4) 
+		{
+			UART_send_string("%s led is %s\n", color_name[LED], stt_name[LED_stt]);
+			LED_Ctrl(LED, LED_stt);
+			vTaskDelay(1000);
+		}
 	}
 }
 
@@ -35,14 +29,15 @@ int main()
 {
 	LED_Init();
 	UART_Init();
-	xTaskCreate(task1_blink_red_led, "task 1", 512, NULL, 0, &task1);	
-	xTaskCreate(task2_blink_blue_led, "task 2", 512, NULL, 0, &task2);	
-	UART_send_string("Tao 2 task thanh cong\n");
+	DMA_Init();
+	xTaskCreate(task1_LED_Ctrl_via_UART, "task 1", 512, NULL, 0, &task1);	
 	vTaskStartScheduler();	
+	
 	while (1)
 	{		
-	
+		
 	}
+	return 0;
 }
 
 void SystemInit() 

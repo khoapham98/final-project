@@ -1,3 +1,4 @@
+#pragma once
 #define GPIOD_BASE_ADDR 0x40020C00
 typedef enum
 {

@@ -1,3 +1,4 @@
+#pragma once
 #define RCC_BASE_ADDR 0x40023800
 typedef enum
 {

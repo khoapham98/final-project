@@ -3,15 +3,18 @@
 FREERTOS_DIR=FreeRTOS
 CC=arm-none-eabi-gcc
 OBJ_DIR=build/obj
-SRC_DIR=drivers/src
-INC_DIR=drivers/inc
+DRIVER_SRC=drivers/src
+DRIVER_INC=drivers/inc
 BIN_DIR=build/bin
+DEVICE_SRC=devices/src
+DEVICE_INC=devices/inc
+INCLUDES=-I$(DEVICE_INC) -I$(DRIVER_INC)
 
 OBJS=$(OBJ_DIR)/main.o $(OBJ_DIR)/startup.o \
-	 $(OBJ_DIR)/uart.o $(OBJ_DIR)/led.o $(OBJ_DIR)/clock.o $(OBJ_DIR)/dma.o \
+	 $(OBJ_DIR)/uart.o $(OBJ_DIR)/led.o $(OBJ_DIR)/clock.o $(OBJ_DIR)/dma.o $(OBJ_DIR)/adc.o $(OBJ_DIR)/temp_sensor.o \
 	 $(OBJ_DIR)/list.o $(OBJ_DIR)/queue.o $(OBJ_DIR)/tasks.o $(OBJ_DIR)/port.o $(OBJ_DIR)/heap_4.o 
 
-CFLAGS=-mfpu=fpv4-sp-d16 -mthumb -mfloat-abi=hard -mcpu=cortex-m4 -std=gnu11 -I$(INC_DIR) -I$(FREERTOS_DIR)/include/ -I. -I$(FREERTOS_DIR)/portable/GCC/ARM_CM4F/ -I$(FREERTOS_DIR)/config/
+CFLAGS=-mfpu=fpv4-sp-d16 -mthumb -mfloat-abi=hard -mcpu=cortex-m4 -std=gnu11 $(INCLUDES) -I$(FREERTOS_DIR)/include/ -I. -I$(FREERTOS_DIR)/portable/GCC/ARM_CM4F/ -I$(FREERTOS_DIR)/config/
 
 LDFLAGS=-T"STM32F411VETX_FLASH.ld" \
 		-Wl,-Map="$(BIN_DIR)/output.map" -Wl,--gc-sections \
@@ -36,17 +39,23 @@ $(OBJ_DIR)/heap_4.o: $(FREERTOS_DIR)/portable/MemMang/heap_4.c
 
 $(OBJ_DIR)/main.o: main.c
 	$(CC) -c $< $(CFLAGS) -o $@
-
-$(OBJ_DIR)/uart.o: $(SRC_DIR)/uart.c
+	
+$(OBJ_DIR)/led.o: $(DEVICE_SRC)/led.c
 	$(CC) -c $< $(CFLAGS) -o $@
 
-$(OBJ_DIR)/led.o: $(SRC_DIR)/led.c
+$(OBJ_DIR)/temp_sensor.o: $(DEVICE_SRC)/temp_sensor.c
 	$(CC) -c $< $(CFLAGS) -o $@
 
-$(OBJ_DIR)/clock.o: $(SRC_DIR)/clock.c
+$(OBJ_DIR)/uart.o: $(DRIVER_SRC)/uart.c
 	$(CC) -c $< $(CFLAGS) -o $@
 
-$(OBJ_DIR)/dma.o: $(SRC_DIR)/dma.c
+$(OBJ_DIR)/clock.o: $(DRIVER_SRC)/clock.c
+	$(CC) -c $< $(CFLAGS) -o $@
+
+$(OBJ_DIR)/dma.o: $(DRIVER_SRC)/dma.c
+	$(CC) -c $< $(CFLAGS) -o $@
+
+$(OBJ_DIR)/adc.o: $(DRIVER_SRC)/adc.c
 	$(CC) -c $< $(CFLAGS) -o $@
 
 $(OBJ_DIR)/startup.o: startup_stm32f411vetx.s

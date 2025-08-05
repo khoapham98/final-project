@@ -9,37 +9,54 @@
 
 extern int LED; 
 extern int LED_stt;
-
+extern int update;
 extern char rx_buf[];
+
 const char* color_name[] = {"green", "orange", "red", "blue",
 							"Green", "Orange", "Red", "Blue", 
 							"GREEN", "ORANGE", "RED", "BLUE"};
 const char* stt_name[] = {"off", "on", "Off", "On", "OFF", "ON"}; 
 
-static void data_process()
+static void led_handle_data()
 {
-	int clen = sizeof(color_name) / sizeof(color_name[0]);
-	for (int i = 0; i < clen; i++)
-	{
+	int clen = sizeof(color_name) / sizeof(color_name[0]); 
+	for (int i = 0; i < clen; i++) 
+	{ 
 		if (strstr(rx_buf, color_name[i])) 
 		{
-			if (i < 4) { LED = i; }
-			else if (i < 8) { LED = i - 4; }
-			else { LED = i - 8; }
-			break;
-		}
-	}
+			if (i < 4) { LED = i; } 
+			else if (i < 8) { LED = i - 4; } 
+			else { LED = i - 8; } 
+			break; 
+		} 
+	} 
 
-	int slen = sizeof(stt_name) / sizeof(stt_name[0]);
-	for (int i = 0; i < slen; i++)
-	{
+	int slen = sizeof(stt_name) / sizeof(stt_name[0]); 
+	for (int i = 0; i < slen; i++) 
+	{ 
 		if (strstr(rx_buf, stt_name[i])) 
-		{
-			if (i < 2) { LED_stt = i; }
-			else if (i < 4) { LED_stt = i - 2; }
-			else { LED_stt = i - 4; }
-			break;
-		}
+		{ 
+			if (i < 2) { LED_stt = i; } 
+			else if (i < 4) { LED_stt = i - 2; } 
+			else { LED_stt = i - 4; } 
+			break; 
+		} 
+	}
+}
+
+static void data_process()
+{
+	if (strstr(rx_buf, "update"))
+	{
+		UART_send_string("please upload firmware!\n");
+	}
+	else if (strstr(rx_buf, "led") || strstr(rx_buf, "LED") || strstr(rx_buf, "Led"))
+	{
+		led_handle_data();
+	}
+	else 
+	{
+		update = READY;
 	}
 }
 
@@ -57,14 +74,19 @@ void USART1_IRQHandler()
 	(void)tmp; 
 	/* disable DMA */
 	*DMA_S2CR &= ~(1 << 0); 
-	/* set number of data */
-	*DMA_S2NDTR = RX_BUF_SIZE;
-	/* set dest addr */
-	*DMA_S2M0AR = (uint32_t) rx_buf;
-	/* data process */
-	data_process();
 	/* clear interrupt flag */ 
 	*DMA_LIFCR |= 1 << 21; 
+	/* data process */
+	data_process();
+	/* set number of data */
+	*DMA_S2NDTR = 0xffff;
+	/* set dest addr */
+	*DMA_S2M0AR = (uint32_t) rx_buf;
+	if (update != READY)
+	{
+		int data_len = strlen(rx_buf);
+		memset(rx_buf, 0, data_len);
+	}
 	/* enable DMA */ 
 	*DMA_S2CR |= 1 << 0; 
 }

@@ -7,14 +7,14 @@
 #include <string.h>
 #include <stdio.h>
 
-int LED = -1, LED_stt = LED_OFF;
+extern int LED; 
+extern int LED_stt;
+
 extern char rx_buf[];
 const char* color_name[] = {"green", "orange", "red", "blue",
 							"Green", "Orange", "Red", "Blue", 
 							"GREEN", "ORANGE", "RED", "BLUE"};
-const char* stt_name[] = {"off", "on", 
-						"Off", "On",
-						"OFF", "ON"}; 
+const char* stt_name[] = {"off", "on", "Off", "On", "OFF", "ON"}; 
 
 static void data_process()
 {
@@ -58,7 +58,7 @@ void USART1_IRQHandler()
 	/* disable DMA */
 	*DMA_S2CR &= ~(1 << 0); 
 	/* set number of data */
-	*DMA_S2NDTR = 32;
+	*DMA_S2NDTR = RX_BUF_SIZE;
 	/* set dest addr */
 	*DMA_S2M0AR = (uint32_t) rx_buf;
 	/* data process */

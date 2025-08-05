@@ -11,10 +11,17 @@
 
 TaskHandle_t task1;
 TaskHandle_t task2; 
+TaskHandle_t task3; 
 SemaphoreHandle_t uart_lock; 
 
-extern int LED; 
-extern int LED_stt;
+int LED = -1; 
+int LED_stt = LED_OFF;
+int update = 0; 
+char rx_buf[512] = {0};
+void task3_update_fw()
+{
+
+}
 
 void task2_read_MCU_temp()
 {
@@ -52,6 +59,7 @@ int main()
 	LED_Init();
 	xTaskCreate(task1_LED_Ctrl_via_UART, "task 1", 512, NULL, 0, &task1);	
 	xTaskCreate(task2_read_MCU_temp, "task 2", 512, NULL, 0, &task2);
+	/* xTaskCreate(task3_update_fw, "task 3", 512, NULL, 1, &task3); */
 	uart_lock = xSemaphoreCreateMutex();
 	vTaskStartScheduler();	
 	

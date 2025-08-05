@@ -11,7 +11,8 @@ DEVICE_INC=devices/inc
 INCLUDES=-I$(DEVICE_INC) -I$(DRIVER_INC)
 
 OBJS=$(OBJ_DIR)/main.o $(OBJ_DIR)/startup.o \
-	 $(OBJ_DIR)/uart.o $(OBJ_DIR)/led.o $(OBJ_DIR)/clock.o $(OBJ_DIR)/dma.o $(OBJ_DIR)/adc.o $(OBJ_DIR)/temp_sensor.o \
+	 $(OBJ_DIR)/uart.o  $(OBJ_DIR)/clock.o $(OBJ_DIR)/dma.o $(OBJ_DIR)/adc.o $(OBJ_DIR)/flash.o \
+	 $(OBJ_DIR)/led.o $(OBJ_DIR)/temp_sensor.o \
 	 $(OBJ_DIR)/list.o $(OBJ_DIR)/queue.o $(OBJ_DIR)/tasks.o $(OBJ_DIR)/port.o $(OBJ_DIR)/heap_4.o 
 
 CFLAGS=-mfpu=fpv4-sp-d16 -mthumb -mfloat-abi=hard -mcpu=cortex-m4 -std=gnu11 $(INCLUDES) -I$(FREERTOS_DIR)/include/ -I. -I$(FREERTOS_DIR)/portable/GCC/ARM_CM4F/ -I$(FREERTOS_DIR)/config/
@@ -56,6 +57,9 @@ $(OBJ_DIR)/dma.o: $(DRIVER_SRC)/dma.c
 	$(CC) -c $< $(CFLAGS) -o $@
 
 $(OBJ_DIR)/adc.o: $(DRIVER_SRC)/adc.c
+	$(CC) -c $< $(CFLAGS) -o $@
+	
+$(OBJ_DIR)/flash.o: $(DRIVER_SRC)/flash.c
 	$(CC) -c $< $(CFLAGS) -o $@
 
 $(OBJ_DIR)/startup.o: startup_stm32f411vetx.s

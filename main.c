@@ -3,6 +3,7 @@
 #include "uart.h"
 #include "dma.h"
 #include "adc.h"
+#include "flash.h"
 #include "led.h"
 #include "temp_sensor.h"
 #include "FreeRTOS.h"
@@ -16,11 +17,22 @@ SemaphoreHandle_t uart_lock;
 
 int LED = -1; 
 int LED_stt = LED_OFF;
-int update = 0; 
-char rx_buf[512] = {0};
-void task3_update_fw()
-{
+int update = IDLE; 
+uint8_t rx_buf[50000] = {0};
 
+void task3_update_fw_via_UART()
+{
+	while (1) 
+	{
+		if (update == READY)
+		{
+			/* FLASH_mass_erase(); */
+			/* FLASH_program(rx_buf, 47956); */
+			UART_send_string("Flash erase & program\n");
+			update = IDLE;
+		}		
+		vTaskDelay(1000);
+	}
 }
 
 void task2_read_MCU_temp()
@@ -34,7 +46,6 @@ void task2_read_MCU_temp()
 			UART_send_string("STM32 temperature: %.2f\n", temp); 
 			xSemaphoreGive(uart_lock); 
 		}
-		/* vTaskDelay(1000); */
 		vTaskDelayUntil(&last_time, 1000);
 	}
 }
@@ -57,9 +68,10 @@ int main()
 	DMA_Init();
 	ADC_Init();
 	LED_Init();
+	UART_send_string("This is firmware ver 2.0\n");
 	xTaskCreate(task1_LED_Ctrl_via_UART, "task 1", 512, NULL, 0, &task1);	
 	xTaskCreate(task2_read_MCU_temp, "task 2", 512, NULL, 0, &task2);
-	/* xTaskCreate(task3_update_fw, "task 3", 512, NULL, 1, &task3); */
+	xTaskCreate(task3_update_fw_via_UART, "task 3", 512, NULL, 1, &task3);
 	uart_lock = xSemaphoreCreateMutex();
 	vTaskStartScheduler();	
 	

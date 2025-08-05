@@ -7,7 +7,7 @@
 #include <string.h>
 #include <stdio.h>
 
-uint8_t LED = 4, LED_stt = LED_OFF;
+int LED = -1, LED_stt = LED_OFF;
 extern char rx_buf[];
 const char* color_name[] = {"green", "orange", "red", "blue",
 							"Green", "Orange", "Red", "Blue", 
@@ -45,7 +45,6 @@ static void data_process()
 
 void USART1_IRQHandler()
 {
-	UART_send_string("Data received!\n");
 	uint32_t* USART_SR = (uint32_t*) (USART1_BASE_ADDR + 0x00);
 	uint32_t* USART_DR = (uint32_t*) (USART1_BASE_ADDR + 0x04);
 	uint32_t* DMA_S2CR = (uint32_t*) (DMA2_BASE_ADDR + 0x10 + 0x18 * 2); 

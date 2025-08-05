@@ -1,6 +1,7 @@
 #include <stdint.h>
 #include "led.h"
 #include "clock.h"
+#include "uart.h"
 
 LED_state_t stt[4] = { LED_OFF };
 void LED_toggle(LED_color_t color)

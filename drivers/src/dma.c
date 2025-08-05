@@ -16,8 +16,6 @@ void DMA_Init()
 	*DMA_S2PAR = 0x40011000 + 0x04;
 	/* set dest addr */
 	*DMA_S2M0AR = (uint32_t) rx_buf;
-	/* enable circular mode */
-//	*DMA_S2CR |= 1 << 8;
 	/* select channel 4 stream 2 */
 	*DMA_S2CR |= 4 << 25;
 	/* enable memory increment */

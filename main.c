@@ -9,6 +9,7 @@
 #include "FreeRTOS.h"
 #include "task.h"
 #include "semphr.h"
+#define FW_SIZE	48036
 
 TaskHandle_t task1;
 TaskHandle_t task2; 
@@ -26,10 +27,12 @@ void task3_update_fw_via_UART()
 	{
 		if (update == READY)
 		{
-			/* FLASH_mass_erase(); */
-			/* FLASH_program(rx_buf, 47956); */
-			UART_send_string("Flash erase & program\n");
-			update = IDLE;
+			if (xSemaphoreTake(uart_lock, 0xff) == pdTRUE)
+			{
+				update = IDLE;
+				UART_send_string("Updating new firmware...\n");
+				FLASH_update_fw(rx_buf, FW_SIZE);
+			}
 		}		
 		vTaskDelay(1000);
 	}
@@ -68,7 +71,7 @@ int main()
 	DMA_Init();
 	ADC_Init();
 	LED_Init();
-	UART_send_string("This is firmware ver 2.0\n");
+	UART_send_string("This is firmware ver 1.0\n");
 	xTaskCreate(task1_LED_Ctrl_via_UART, "task 1", 512, NULL, 0, &task1);	
 	xTaskCreate(task2_read_MCU_temp, "task 2", 512, NULL, 0, &task2);
 	xTaskCreate(task3_update_fw_via_UART, "task 3", 512, NULL, 1, &task3);

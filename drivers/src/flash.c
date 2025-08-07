@@ -1,10 +1,31 @@
 #include <stdint.h>
 #include <string.h>
 #include "flash.h"
-static void FLASH_lock();
-static void FLASH_unlock();
+RAM_FUNC static void FLASH_lock();
+RAM_FUNC static void FLASH_unlock();
+RAM_FUNC static void FLASH_program(uint8_t* fw, uint32_t fw_len);
+RAM_FUNC static void FLASH_mass_erase();
 
-void FLASH_program(uint8_t* fw, uint32_t fw_len)
+RAM_FUNC static void software_reset()
+{
+	uint32_t* AIRCR = (uint32_t*) (0xE000ED0C);
+	/* write to VECTKEY ortherwise the write is ignored */ 
+	*AIRCR |= 0x5FA << 16; 
+	/* force software reset */ 
+	*AIRCR |= 1 << 2; 
+}
+
+RAM_FUNC void FLASH_update_fw(uint8_t* fw, uint32_t fw_len)
+{
+	__asm("CPSID i");
+	/* FLASH_unlock(); */
+	FLASH_mass_erase();
+	FLASH_program(fw, fw_len);
+	/* FLASH_lock(); */
+	software_reset();
+}
+
+RAM_FUNC static void FLASH_program(uint8_t* fw, uint32_t fw_len)
 {
 	FLASH_unlock();
 	uint32_t* FLASH_SR = (uint32_t*) (FLASH_INTF_BASE_ADDR + 0x0C);
@@ -27,7 +48,7 @@ void FLASH_program(uint8_t* fw, uint32_t fw_len)
 	FLASH_lock();
 }
 
-void FLASH_mass_erase()
+RAM_FUNC static void FLASH_mass_erase()
 {
 	FLASH_unlock();
 	uint32_t* FLASH_SR = (uint32_t*) (FLASH_INTF_BASE_ADDR + 0x0C);
@@ -45,13 +66,13 @@ void FLASH_mass_erase()
 	FLASH_lock();
 }
 
-static void FLASH_lock()
+RAM_FUNC static void FLASH_lock()
 {
 	uint32_t* FLASH_CR = (uint32_t*) (FLASH_INTF_BASE_ADDR + 0x10);
 	*FLASH_CR |= 1 << 31; 
 }
 
-static void FLASH_unlock()
+RAM_FUNC static void FLASH_unlock()
 {
 	uint32_t* FLASH_KEYR = (uint32_t*) (FLASH_INTF_BASE_ADDR + 0x04);
 	*FLASH_KEYR = 0x45670123;
